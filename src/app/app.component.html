@@ -1,0 +1,64 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <p class="eyebrow">Arcade field report</p>
+      <h1>Neon Snake</h1>
+      <p class="subtitle">
+        Eat the ember. Stay sharp. Walls and tails are instant shutdown.
+      </p>
+    </div>
+    <div class="cta">
+      <button class="primary" type="button" (click)="startGame()" [disabled]="running">
+        {{ gameOver ? 'Restart' : 'Start' }}
+      </button>
+      <button class="ghost" type="button" (click)="pauseGame()" [disabled]="!running">
+        Pause
+      </button>
+      <button class="ghost" type="button" (click)="resetGame()">Reset</button>
+    </div>
+  </header>
+
+  <section class="hud">
+    <div class="stat">
+      <span class="label">Score</span>
+      <span class="value">{{ score }}</span>
+    </div>
+    <div class="stat">
+      <span class="label">Speed</span>
+      <span class="value">{{ speedMs }}ms</span>
+    </div>
+    <div class="stat">
+      <span class="label">Length</span>
+      <span class="value">{{ snake.length }}</span>
+    </div>
+    <div class="stat">
+      <span class="label">Status</span>
+      <span class="value">{{ running ? 'Live' : gameOver ? 'Crashed' : 'Idle' }}</span>
+    </div>
+  </section>
+
+  <div class="board-shell">
+    <div class="board" [style.--size]="gridSize">
+      @for (cell of gridCells; track cell) {
+        <div
+          class="cell"
+          [class.snake]="isSnake(cell)"
+          [class.head]="isHead(cell)"
+          [class.food]="isFood(cell)"
+        ></div>
+      }
+    </div>
+
+    <div class="overlay" *ngIf="gameOver">
+      <div class="panel">
+        <p class="panel-title">Signal lost</p>
+        <p class="panel-score">Final score: {{ score }}</p>
+        <button class="primary" type="button" (click)="startGame()">Play again</button>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div>Arrow keys or WASD to steer. Space/Enter to start or pause.</div>
+  </footer>
+</div>
