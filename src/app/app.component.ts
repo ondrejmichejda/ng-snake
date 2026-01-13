@@ -10,6 +10,8 @@ import {
 
 type Direction = { x: number; y: number };
 type Position = { x: number; y: number };
+type SnakeSegment = Position & { color: string };
+type Food = Position & { color: string };
 
 @Component({
   selector: 'app-root',
@@ -23,9 +25,12 @@ export class AppComponent implements OnInit, OnDestroy {
   gridSize = 20;
   gridCells: number[] = [];
 
-  snake: Position[] = [];
+  snake: SnakeSegment[] = [];
   snakeSet = new Set<string>();
-  food: Position = { x: 0, y: 0 };
+  snakeColors = new Map<string, string>();
+  foods: Food[] = [];
+  foodSet = new Set<string>();
+  foodColors = new Map<string, string>();
 
   direction: Direction = { x: 1, y: 0 };
   requestedDirection: Direction = { x: 1, y: 0 };
@@ -34,6 +39,18 @@ export class AppComponent implements OnInit, OnDestroy {
   running = false;
   gameOver = false;
   speedMs = 140;
+  private readonly minSpeedMs = 60;
+  private readonly speedStepMs = 5;
+  private readonly maxFoods = 3;
+  private readonly initialSnakeColor = '#41ffd9';
+  private readonly foodPalette = [
+    '#ff4d6d',
+    '#f9c74f',
+    '#4cc9f0',
+    '#f8961e',
+    '#b5179e',
+    '#43aa8b'
+  ];
 
   private timerId: number | undefined;
 
@@ -79,16 +96,20 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const mid = Math.floor(this.gridSize / 2);
     this.snake = [
-      { x: mid, y: mid },
-      { x: mid - 1, y: mid },
-      { x: mid - 2, y: mid }
+      { x: mid, y: mid, color: this.initialSnakeColor },
+      { x: mid - 1, y: mid, color: this.initialSnakeColor },
+      { x: mid - 2, y: mid, color: this.initialSnakeColor }
     ];
     this.snakeSet = new Set(this.snake.map((segment) => this.posKey(segment)));
+    this.snakeColors = new Map(
+      this.snake.map((segment) => [this.posKey(segment), segment.color])
+    );
     this.direction = { x: 1, y: 0 };
     this.requestedDirection = { x: 1, y: 0 };
     this.score = 0;
+    this.speedMs = 140;
     this.gameOver = false;
-    this.placeFood();
+    this.placeFoods();
     this.running = false;
   }
 
@@ -130,9 +151,29 @@ export class AppComponent implements OnInit, OnDestroy {
     return head.x === pos.x && head.y === pos.y;
   }
 
+  isTail(index: number): boolean {
+    const tail = this.snake[this.snake.length - 1];
+    if (!tail) {
+      return false;
+    }
+
+    const pos = this.indexToPos(index);
+    return tail.x === pos.x && tail.y === pos.y;
+  }
+
   isFood(index: number): boolean {
     const pos = this.indexToPos(index);
-    return this.food.x === pos.x && this.food.y === pos.y;
+    return this.foodSet.has(this.posKey(pos));
+  }
+
+  getSnakeColor(index: number): string | null {
+    const pos = this.indexToPos(index);
+    return this.snakeColors.get(this.posKey(pos)) ?? null;
+  }
+
+  getFoodColor(index: number): string | null {
+    const pos = this.indexToPos(index);
+    return this.foodColors.get(this.posKey(pos)) ?? null;
   }
 
   private tick(): void {
@@ -150,23 +191,40 @@ export class AppComponent implements OnInit, OnDestroy {
     const nextKey = this.posKey(nextHead);
     const tail = this.snake[this.snake.length - 1];
     const tailKey = tail ? this.posKey(tail) : '';
-    const willGrow = this.samePosition(nextHead, this.food);
+    const foodIndex = this.foodIndexAt(nextHead);
+    const willGrow = foodIndex >= 0;
 
     if (this.snakeSet.has(nextKey) && !(nextKey === tailKey && !willGrow)) {
       this.endGame();
       return;
     }
 
-    this.snake.unshift(nextHead);
+    const nextColor = willGrow
+      ? this.foods[foodIndex]?.color ?? head.color
+      : head.color;
+    const nextSegment: SnakeSegment = { ...nextHead, color: nextColor };
+
+    this.snake.unshift(nextSegment);
     this.snakeSet.add(nextKey);
+    this.snakeColors.set(nextKey, nextSegment.color);
 
     if (willGrow) {
       this.score += 1;
-      this.placeFood();
+      this.increaseSpeed();
+      this.consumeFoodAt(foodIndex);
+      if (this.foods.length === 0) {
+        this.placeFoods();
+      } else {
+        this.maybeSpawnBonusFood();
+      }
     } else {
       const removed = this.snake.pop();
       if (removed) {
-        this.snakeSet.delete(this.posKey(removed));
+        const removedKey = this.posKey(removed);
+        if (removedKey !== nextKey) {
+          this.snakeSet.delete(removedKey);
+          this.snakeColors.delete(removedKey);
+        }
       }
     }
 
@@ -193,6 +251,18 @@ export class AppComponent implements OnInit, OnDestroy {
     this.stopLoop();
   }
 
+  private increaseSpeed(): void {
+    const nextSpeed = Math.max(this.minSpeedMs, this.speedMs - this.speedStepMs);
+    if (nextSpeed === this.speedMs) {
+      return;
+    }
+
+    this.speedMs = nextSpeed;
+    if (this.running) {
+      this.startLoop();
+    }
+  }
+
   private scrollBoardIntoView(): void {
     if (!this.boardShell) {
       return;
@@ -206,16 +276,72 @@ export class AppComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  private placeFood(): void {
+  private placeFoods(): void {
+    this.foods = [];
+    this.foodSet.clear();
+    this.foodColors.clear();
+
+    let count = 1;
+    if (Math.random() < 0.35) {
+      count += 1;
+    }
+    if (Math.random() < 0.15) {
+      count += 1;
+    }
+
+    const foodCount = Math.min(count, this.maxFoods);
+    for (let i = 0; i < foodCount; i += 1) {
+      this.addFood();
+    }
+  }
+
+  private maybeSpawnBonusFood(): void {
+    if (this.foods.length >= this.maxFoods) {
+      return;
+    }
+
+    if (Math.random() < 0.25) {
+      this.addFood();
+    }
+  }
+
+  private addFood(): void {
     let idx = 0;
     let next: Position = { x: 0, y: 0 };
+    let nextKey = '';
 
     do {
       idx = Math.floor(Math.random() * this.gridSize * this.gridSize);
       next = { x: idx % this.gridSize, y: Math.floor(idx / this.gridSize) };
-    } while (this.snakeSet.has(this.posKey(next)));
+      nextKey = this.posKey(next);
+    } while (this.snakeSet.has(nextKey) || this.foodSet.has(nextKey));
 
-    this.food = next;
+    const color = this.randomFoodColor();
+    const food: Food = { ...next, color };
+    this.foods.push(food);
+    this.foodSet.add(nextKey);
+    this.foodColors.set(nextKey, color);
+  }
+
+  private randomFoodColor(): string {
+    const index = Math.floor(Math.random() * this.foodPalette.length);
+    return this.foodPalette[index] ?? this.initialSnakeColor;
+  }
+
+  private consumeFoodAt(index: number): void {
+    const food = this.foods[index];
+    if (!food) {
+      return;
+    }
+
+    this.foods.splice(index, 1);
+    const foodKey = this.posKey(food);
+    this.foodSet.delete(foodKey);
+    this.foodColors.delete(foodKey);
+  }
+
+  private foodIndexAt(pos: Position): number {
+    return this.foods.findIndex((food) => this.samePosition(food, pos));
   }
 
   private indexToPos(index: number): Position {

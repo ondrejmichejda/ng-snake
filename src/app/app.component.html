@@ -8,7 +8,7 @@
       </p>
     </div>
     <div class="cta">
-      <button class="primary" type="button" (click)="starGame()" [disabled]="running">
+      <button class="primary" type="button" (click)="startGame()" [disabled]="running">
         {{ gameOver ? 'Restart' : 'Start' }}
       </button>
       <button class="ghost" type="button" (click)="pauseGame()" [disabled]="!running">
@@ -44,7 +44,10 @@
           class="cell"
           [class.snake]="isSnake(cell)"
           [class.head]="isHead(cell)"
+          [class.tail]="isTail(cell)"
           [class.food]="isFood(cell)"
+          [style.--snake-color]="getSnakeColor(cell)"
+          [style.--food-color]="getFoodColor(cell)"
         ></div>
       }
     </div>
