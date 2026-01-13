@@ -1,5 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 
 type Direction = { x: number; y: number };
 type Position = { x: number; y: number };
@@ -12,6 +19,7 @@ type Position = { x: number; y: number };
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnInit, OnDestroy {
+  @ViewChild('boardShell') boardShell?: ElementRef<HTMLDivElement>;
   gridSize = 20;
   gridCells: number[] = [];
 
@@ -49,6 +57,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.running = true;
     this.startLoop();
+    this.scrollBoardIntoView();
   }
 
   pauseGame(): void {
@@ -133,15 +142,10 @@ export class AppComponent implements OnInit, OnDestroy {
 
     const head = this.snake[0];
     const nextDirection = this.requestedDirection;
-    const nextHead: Position = {
+    const nextHead = this.wrapPosition({
       x: head.x + nextDirection.x,
       y: head.y + nextDirection.y
-    };
-
-    if (this.isOutOfBounds(nextHead)) {
-      this.endGame();
-      return;
-    }
+    });
 
     const nextKey = this.posKey(nextHead);
     const tail = this.snake[this.snake.length - 1];
@@ -189,6 +193,19 @@ export class AppComponent implements OnInit, OnDestroy {
     this.stopLoop();
   }
 
+  private scrollBoardIntoView(): void {
+    if (!this.boardShell) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      this.boardShell?.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }, 0);
+  }
+
   private placeFood(): void {
     let idx = 0;
     let next: Position = { x: 0, y: 0 };
@@ -232,13 +249,10 @@ export class AppComponent implements OnInit, OnDestroy {
     return a.x === -b.x && a.y === -b.y;
   }
 
-  private isOutOfBounds(pos: Position): boolean {
-    return (
-      pos.x < 0 ||
-      pos.y < 0 ||
-      pos.x >= this.gridSize ||
-      pos.y >= this.gridSize
-    );
+  private wrapPosition(pos: Position): Position {
+    const x = (pos.x + this.gridSize) % this.gridSize;
+    const y = (pos.y + this.gridSize) % this.gridSize;
+    return { x, y };
   }
 
   private samePosition(a: Position, b: Position): boolean {

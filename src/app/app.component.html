@@ -4,7 +4,7 @@
       <p class="eyebrow">Arcade field report</p>
       <h1>Neon Snake</h1>
       <p class="subtitle">
-        Eat the ember. Stay sharp. Walls and tails are instant shutdown.
+        Eat the ember. Stay sharp. Borders wrap, but tails are instant shutdown.
       </p>
     </div>
     <div class="cta">
@@ -37,7 +37,7 @@
     </div>
   </section>
 
-  <div class="board-shell">
+  <div class="board-shell" #boardShell>
     <div class="board" [style.--size]="gridSize">
       @for (cell of gridCells; track cell) {
         <div
@@ -59,6 +59,6 @@
   </div>
 
   <footer class="footer">
-    <div>Arrow keys or WASD to steer. Space/Enter to start or pause.</div>
+    <div>Arrow keys or WASD to steer. Space/Enter to start or pause. Borders wrap.</div>
   </footer>
 </div>
