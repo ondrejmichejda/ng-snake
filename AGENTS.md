@@ -23,6 +23,7 @@
   - A short summary of changes and rationale.
   - Steps to verify (commands and expected outcomes).
   - Screenshots or recordings for UI changes.
+- Structure commit messages following the Conventional Commits convention.
 
 ## Agent Notes
 - Keep instructions in this file concise and current as the project grows.

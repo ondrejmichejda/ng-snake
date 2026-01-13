@@ -147,15 +147,20 @@ button:disabled {
   box-shadow: 0 0 12px rgba(78, 247, 255, 0.35);
 }
 
+.cell.npc {
+  background: var(--npc-color, #ff8fab);
+  box-shadow: 0 0 12px rgba(255, 143, 171, 0.35);
+}
+
 .cell.head {
-  background: linear-gradient(135deg, #f6ff7a, var(--snake-color, #f3c84b));
+  background: linear-gradient(135deg, #fff2a8, #f3c84b);
   transform: scale(1.05);
   box-shadow: 0 0 16px rgba(246, 255, 122, 0.55);
   outline: 2px solid rgba(246, 255, 122, 0.7);
 }
 
 .cell.tail {
-  background: linear-gradient(135deg, var(--snake-color, #7b5cff), #2b4bff);
+  background: var(--snake-color, #2bc1ff);
   box-shadow: 0 0 14px rgba(123, 92, 255, 0.55);
   outline: 2px solid rgba(123, 92, 255, 0.65);
 }
