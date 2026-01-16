@@ -143,18 +143,34 @@ button:disabled {
 }
 
 .cell.snake {
-  background: linear-gradient(135deg, #4ef7ff, #2bc1ff);
-  box-shadow: 0 0 12px rgba(78, 247, 255, 0.45);
+  background: var(--snake-color, #2bc1ff);
+  box-shadow: 0 0 12px rgba(78, 247, 255, 0.35);
+}
+
+.cell.npc {
+  background: var(--npc-color, #ff8fab);
+  box-shadow: 0 0 12px rgba(255, 143, 171, 0.35);
 }
 
 .cell.head {
-  background: linear-gradient(135deg, #f6ff7a, #f3c84b);
+  background: linear-gradient(135deg, #fff2a8, #f3c84b);
   transform: scale(1.05);
   box-shadow: 0 0 16px rgba(246, 255, 122, 0.55);
+  outline: 2px solid rgba(246, 255, 122, 0.7);
+}
+
+.cell.tail {
+  background: var(--snake-color, #2bc1ff);
+  box-shadow: 0 0 14px rgba(123, 92, 255, 0.55);
+  outline: 2px solid rgba(123, 92, 255, 0.65);
 }
 
 .cell.food {
-  background: radial-gradient(circle, #ff4d6d 0%, #ff784f 65%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.85) 0%,
+    var(--food-color, #ff4d6d) 65%
+  );
   box-shadow: 0 0 14px rgba(255, 77, 109, 0.6);
 }
 

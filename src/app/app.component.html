@@ -3,18 +3,10 @@
     <div>
       <p class="eyebrow">Arcade field report</p>
       <h1>Neon Snake</h1>
-      <p class="subtitle">
-        Eat the ember. Stay sharp. Borders wrap, but tails are instant shutdown.
-      </p>
+      <p class="subtitle">Eat the ember. Stay sharp. Walls and tails end the run.</p>
     </div>
     <div class="cta">
-      <button class="primary" type="button" (click)="starGame()" [disabled]="running">
-        {{ gameOver ? 'Restart' : 'Start' }}
-      </button>
-      <button class="ghost" type="button" (click)="pauseGame()" [disabled]="!running">
-        Pause
-      </button>
-      <button class="ghost" type="button" (click)="resetGame()">Reset</button>
+      <button class="primary" type="button" (click)="resetGame()">Restart</button>
     </div>
   </header>
 
@@ -44,7 +36,12 @@
           class="cell"
           [class.snake]="isSnake(cell)"
           [class.head]="isHead(cell)"
+          [class.tail]="isTail(cell)"
+          [class.npc]="isNpc(cell)"
           [class.food]="isFood(cell)"
+          [style.--snake-color]="getSnakeColor(cell)"
+          [style.--npc-color]="getNpcColor(cell)"
+          [style.--food-color]="getFoodColor(cell)"
         ></div>
       }
     </div>
@@ -53,12 +50,12 @@
       <div class="panel">
         <p class="panel-title">Signal lost</p>
         <p class="panel-score">Final score: {{ score }}</p>
-        <button class="primary" type="button" (click)="startGame()">Play again</button>
+        <button class="primary" type="button" (click)="resetGame()">Play again</button>
       </div>
     </div>
   </div>
 
   <footer class="footer">
-    <div>Arrow keys or WASD to steer. Space/Enter to start or pause. Borders wrap.</div>
+    <div>Arrow keys or WASD to steer. Game starts automatically. Walls end the run.</div>
   </footer>
 </div>
