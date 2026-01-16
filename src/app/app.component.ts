@@ -352,10 +352,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
       if (willGrow) {
         this.consumeFoodAt(foodIndex);
+        const blockedForFood = new Set(occupied);
+        for (const segment of nextSegments) {
+          blockedForFood.add(this.posKey(segment));
+        }
         if (this.foods.length === 0) {
-          this.placeFoods(occupied);
+          this.placeFoods(blockedForFood);
         } else {
-          this.maybeSpawnBonusFood(occupied);
+          this.maybeSpawnBonusFood(blockedForFood);
         }
 
         nextSegments.pop();
