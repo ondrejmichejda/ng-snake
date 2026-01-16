@@ -52,7 +52,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly speedStepMs = 5;
   private readonly maxFoods = 5;
   private readonly npcCount = 2;
-  private readonly initialSnakeColor = '#33ffd1';
+  private readonly initialSnakeColor = '#0000ff';
   private readonly foodPalette = [
     '#ff4d6d',
     '#f9c74f',
